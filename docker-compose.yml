@@ -1,0 +1,58 @@
+version: '3.9'
+services:
+  backend:
+    build: ./backend
+    container_name: pncp-backend
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/.env.example:/app/.env
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: pncp-frontend
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:14-alpine
+    container_name: pncp-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=pncp_licitacoes
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: pncp-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:
